@@ -46,9 +46,11 @@ namespace DataConverter
                 dataForYear.AverageDailyRainfall = dataForYear.TotalRainfall /
                                                    (dataForYear.DaysWithNoRainfall + dataForYear.DaysWithRainfall);
 
+                dataForYear.LongestNumberOfDaysRaining = FindLongestNumberOfDaysRaining(dataForYear.AllReadings);
+
                 foreach (var dataForMonth in dataForYear.MonthlyAggregates)
                 {
-                    SummariseMonth(dataForMonth);
+                    SummariseMonth(dataForMonth, dataForYear.AllReadings);
                 }
 
                 summary.WeatherData.Add(dataForYear);
@@ -59,23 +61,21 @@ namespace DataConverter
 
         private static void AggregateYearData(WeatherDataForYear yearData, BomRainfallData bomRainfallData)
         {
-            var date = bomRainfallData.GetDate();
+            var rainfallReading = new RainfallReading(bomRainfallData.GetDate(), bomRainfallData.GetRainfall());
 
-            if (yearData.FirstRecordedDate == null || date < yearData.FirstRecordedDate)
+            if (yearData.FirstRecordedDate == null || rainfallReading.Date < yearData.FirstRecordedDate)
             {
-                yearData.FirstRecordedDate = date;
+                yearData.FirstRecordedDate = rainfallReading.Date;
             }
 
-            if (yearData.LastRecordedDate == null || date > yearData.LastRecordedDate)
+            if (yearData.LastRecordedDate == null || rainfallReading.Date > yearData.LastRecordedDate)
             {
-                yearData.LastRecordedDate = date;
+                yearData.LastRecordedDate = rainfallReading.Date;
             }
 
-            var rainfall = bomRainfallData.GetRainfall();
-
-            if (rainfall > 0)
+            if (rainfallReading.Rainfall > 0)
             {
-                yearData.TotalRainfall += rainfall;
+                yearData.TotalRainfall += rainfallReading.Rainfall;
                 yearData.DaysWithRainfall++;
             }
             else
@@ -83,79 +83,115 @@ namespace DataConverter
                 yearData.DaysWithNoRainfall++;
             }
 
-            var monthData = yearData.MonthlyAggregates.FirstOrDefault(month => month.Month == date.Month);
+            yearData.AllReadings.Add(rainfallReading);
+
+            var monthData = yearData.MonthlyAggregates.FirstOrDefault(month => month.Month == rainfallReading.Date.Month);
 
             if (monthData == null)
             {
                 monthData = new WeatherDataForMonth()
                 {
-                    Month = date.Month
+                    Month = rainfallReading.Date.Month
                 };
 
                 yearData.MonthlyAggregates.Add(monthData);
             }
 
-            AggregateMonthData(monthData, bomRainfallData);
+            AggregateMonthData(monthData, rainfallReading);
         }
 
-        private static void AggregateMonthData(WeatherDataForMonth monthData, BomRainfallData bomRainfallData)
+        private static void AggregateMonthData(WeatherDataForMonth monthData, RainfallReading rainfallReading)
         {
-            var date = bomRainfallData.GetDate();
-
-            if (monthData.FirstRecordedDate == null || date < monthData.FirstRecordedDate)
+            if (monthData.FirstRecordedDate == null || rainfallReading.Date < monthData.FirstRecordedDate)
             {
-                monthData.FirstRecordedDate = date;
+                monthData.FirstRecordedDate = rainfallReading.Date;
             }
 
-            if (monthData.LastRecordedDate == null || date > monthData.LastRecordedDate)
+            if (monthData.LastRecordedDate == null || rainfallReading.Date > monthData.LastRecordedDate)
             {
-                monthData.LastRecordedDate = date;
+                monthData.LastRecordedDate = rainfallReading.Date;
             }
 
-            var rainfall = bomRainfallData.GetRainfall();
-
-            if (rainfall > 0)
+            if (rainfallReading.Rainfall > 0)
             {
-                monthData.TotalRainfall += rainfall;
+                monthData.TotalRainfall += rainfallReading.Rainfall;
                 monthData.DaysWithRainfall++;
             }
             else
             {
                 monthData.DaysWithNoRainfall++;
             }
-
-            monthData.AllReadings.Add(rainfall);
         }
 
-        private static void SummariseMonth(WeatherDataForMonth dataForMonth)
+        private static void SummariseMonth(WeatherDataForMonth dataForMonth, IList<RainfallReading> allReadingsForYear)
         {
             dataForMonth.AverageDailyRainfall = dataForMonth.TotalRainfall /
                                                 (dataForMonth.DaysWithNoRainfall + dataForMonth.DaysWithRainfall);
-
-            dataForMonth.MedianDailyRainfall = GetMedian(dataForMonth.AllReadings);
+            
+            dataForMonth.MedianDailyRainfall = GetMedian(allReadingsForYear.Where(r => r.Date.Month == dataForMonth.Month));
         }
 
-        private static decimal GetMedian(IList<decimal> data)
+        private static int FindLongestNumberOfDaysRaining(IList<RainfallReading> readings)
         {
-            if (data.Count == 0)
+            if (readings.Count == 0)
             {
                 return 0;
             }
 
-            if (data.Count == 1)
+            if (readings.Count == 1)
             {
-                return data[0];
+                return 1;
             }
 
-            var sortedData = data.OrderBy(x => x).ToList();
+            var sortedData = readings.OrderBy(r => r.Date).ToList();
+
+            var longestNumberOfDaysRaining = 0;
+            var currentNumberOfDaysRaining = 1;
+            var lastDate = readings[0].Date;
+
+            for (var i = 1; i < sortedData.Count; i ++)
+            {
+                if (sortedData[i].Rainfall > 0 && sortedData[i].Date == lastDate.AddDays(1))
+                {
+                    currentNumberOfDaysRaining++;
+                }
+                else
+                {
+                    if (currentNumberOfDaysRaining > longestNumberOfDaysRaining)
+                    {
+                        longestNumberOfDaysRaining = currentNumberOfDaysRaining;
+                    }
+
+                    currentNumberOfDaysRaining = 1;
+                }
+
+                lastDate = readings[i].Date;
+            }
+
+            return currentNumberOfDaysRaining > longestNumberOfDaysRaining ? currentNumberOfDaysRaining : longestNumberOfDaysRaining;
+        }
+
+        private static decimal GetMedian(IEnumerable<RainfallReading> data)
+        {
+            var sortedData = data.OrderBy(r => r.Rainfall).ToList();
+
+            if (sortedData.Count == 0)
+            {
+                return 0;
+            }
+
+            if (sortedData.Count == 1)
+            {
+                return sortedData[0].Rainfall;
+            }
 
             if (sortedData.Count % 2 == 1)
             {
-                return sortedData[sortedData.Count / 2];
+                return sortedData[sortedData.Count / 2].Rainfall;
             }
 
-            var lower = sortedData[(sortedData.Count - 1) / 2];
-            var upper = sortedData[(sortedData.Count + 1) / 2];
+            var lower = sortedData[(sortedData.Count - 1) / 2].Rainfall;
+            var upper = sortedData[(sortedData.Count + 1) / 2].Rainfall;
 
             return (lower + upper) / 2;
         }
