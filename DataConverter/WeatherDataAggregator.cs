@@ -85,14 +85,11 @@ namespace DataConverter
 
             dataForYear.AllReadings.Add(rainfallReading);
 
-            var monthData = dataForYear.MonthlyAggregates.FirstOrDefault(month => month.Month == rainfallReading.Date.Month);
+            var monthData = dataForYear.MonthlyAggregates.FirstOrDefault(month => month.MonthNumber == rainfallReading.Date.Month);
 
             if (monthData == null)
             {
-                monthData = new WeatherDataForMonth()
-                {
-                    Month = rainfallReading.Date.Month
-                };
+                monthData = WeatherDataForMonth.FromDate(rainfallReading.Date);
 
                 dataForYear.MonthlyAggregates.Add(monthData);
             }
@@ -128,7 +125,7 @@ namespace DataConverter
             dataForMonth.AverageDailyRainfall = dataForMonth.TotalRainfall /
                                                 (dataForMonth.DaysWithNoRainfall + dataForMonth.DaysWithRainfall);
             
-            dataForMonth.MedianDailyRainfall = GetMedian(allReadingsForYear.Where(r => r.Date.Month == dataForMonth.Month));
+            dataForMonth.MedianDailyRainfall = GetMedian(allReadingsForYear.Where(r => r.Date.Month == dataForMonth.MonthNumber));
         }
 
         private static int FindLongestNumberOfDaysRaining(IList<RainfallReading> readings)

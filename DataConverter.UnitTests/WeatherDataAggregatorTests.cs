@@ -58,13 +58,13 @@ namespace DataConverter.UnitTests
             summary.WeatherData.Count.Should().Be(2);
 
             summary.WeatherData[0].MonthlyAggregates.Count.Should().Be(2);
-            summary.WeatherData[0].MonthlyAggregates[0].Month.Should().Be(10);
-            summary.WeatherData[0].MonthlyAggregates[1].Month.Should().Be(11);
+            summary.WeatherData[0].MonthlyAggregates[0].MonthNumber.Should().Be(10);
+            summary.WeatherData[0].MonthlyAggregates[1].MonthNumber.Should().Be(11);
             
             summary.WeatherData[1].MonthlyAggregates.Count.Should().Be(3);
-            summary.WeatherData[1].MonthlyAggregates[0].Month.Should().Be(1);
-            summary.WeatherData[1].MonthlyAggregates[1].Month.Should().Be(2);
-            summary.WeatherData[1].MonthlyAggregates[2].Month.Should().Be(3);
+            summary.WeatherData[1].MonthlyAggregates[0].MonthNumber.Should().Be(1);
+            summary.WeatherData[1].MonthlyAggregates[1].MonthNumber.Should().Be(2);
+            summary.WeatherData[1].MonthlyAggregates[2].MonthNumber.Should().Be(3);
         }
 
 

@@ -1,10 +1,21 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace DataConverter.Models
 {
     public class WeatherDataForMonth
     {
-        public int Month { get; set; }
+        private WeatherDataForMonth(int monthNumber, string monthName)
+        {
+            MonthNumber = monthNumber;
+            MonthName = monthName;
+        }
+
+        [JsonIgnore]
+        public int MonthNumber { get; }
+
+        [JsonPropertyName("Month")]
+        public string MonthName { get; }
         
         public DateTime? FirstRecordedDate { get; set; }
         
@@ -19,5 +30,10 @@ namespace DataConverter.Models
         public int DaysWithNoRainfall { get; set; }
         
         public int DaysWithRainfall { get; set; }
+
+        public static WeatherDataForMonth FromDate(DateTime dateTime)
+        {
+            return new WeatherDataForMonth(dateTime.Month, dateTime.ToString("MMMM"));
+        }
     }
 }
