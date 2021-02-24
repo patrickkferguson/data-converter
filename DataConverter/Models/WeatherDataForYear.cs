@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace DataConverter.Models
 {
@@ -27,5 +28,8 @@ namespace DataConverter.Models
         public int LongestNumberOfDaysRaining { get; set; }
 
         public IList<WeatherDataForMonth> MonthlyAggregates { get; }
+
+        [JsonIgnore]
+        public IList<RainfallReading> AllReadings { get; } = new List<RainfallReading>();
     }
 }

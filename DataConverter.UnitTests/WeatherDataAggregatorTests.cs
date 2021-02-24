@@ -37,7 +37,7 @@ namespace DataConverter.UnitTests
             summary.WeatherData[0].AverageDailyRainfall.Should().Be(15.7m / 2);
             summary.WeatherData[0].DaysWithNoRainfall.Should().Be(0);
             summary.WeatherData[0].DaysWithRainfall.Should().Be(2);
-            //summary.WeatherData[0].LongestNumberOfDaysRaining.Should().Be(1);
+            summary.WeatherData[0].LongestNumberOfDaysRaining.Should().Be(1);
 
             summary.WeatherData[1].Year.Should().Be(2021);
             summary.WeatherData[1].FirstRecordedDate.Should().Be(new DateTime(2021, 1, 1));
@@ -46,7 +46,7 @@ namespace DataConverter.UnitTests
             summary.WeatherData[1].AverageDailyRainfall.Should().Be(48.81m / 10);
             summary.WeatherData[1].DaysWithNoRainfall.Should().Be(2);
             summary.WeatherData[1].DaysWithRainfall.Should().Be(8);
-            //summary.WeatherData[1].LongestNumberOfDaysRaining.Should().Be(1);
+            summary.WeatherData[1].LongestNumberOfDaysRaining.Should().Be(4);
         }
 
         [Fact]
