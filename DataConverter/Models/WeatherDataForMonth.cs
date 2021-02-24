@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace DataConverter.Models
 {
@@ -19,5 +21,8 @@ namespace DataConverter.Models
         public int DaysWithNoRainfall { get; set; }
         
         public int DaysWithRainfall { get; set; }
+
+        [JsonIgnore]
+        public IList<decimal> AllReadings { get; } = new List<decimal>();
     }
 }
