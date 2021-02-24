@@ -48,8 +48,7 @@ namespace DataConverter
 
                 foreach (var dataForMonth in dataForYear.MonthlyAggregates)
                 {
-                    dataForMonth.AverageDailyRainfall = dataForMonth.TotalRainfall /
-                                                     (dataForMonth.DaysWithNoRainfall + dataForMonth.DaysWithRainfall);
+                    SummariseMonth(dataForMonth);
                 }
 
                 summary.WeatherData.Add(dataForYear);
@@ -124,6 +123,41 @@ namespace DataConverter
             {
                 monthData.DaysWithNoRainfall++;
             }
+
+            monthData.AllReadings.Add(rainfall);
+        }
+
+        private static void SummariseMonth(WeatherDataForMonth dataForMonth)
+        {
+            dataForMonth.AverageDailyRainfall = dataForMonth.TotalRainfall /
+                                                (dataForMonth.DaysWithNoRainfall + dataForMonth.DaysWithRainfall);
+
+            dataForMonth.MedianDailyRainfall = GetMedian(dataForMonth.AllReadings);
+        }
+
+        private static decimal GetMedian(IList<decimal> data)
+        {
+            if (data.Count == 0)
+            {
+                return 0;
+            }
+
+            if (data.Count == 1)
+            {
+                return data[0];
+            }
+
+            var sortedData = data.OrderBy(x => x).ToList();
+
+            if (sortedData.Count % 2 == 1)
+            {
+                return sortedData[sortedData.Count / 2];
+            }
+
+            var lower = sortedData[(sortedData.Count - 1) / 2];
+            var upper = sortedData[(sortedData.Count + 1) / 2];
+
+            return (lower + upper) / 2;
         }
     }
 }

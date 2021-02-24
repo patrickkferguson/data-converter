@@ -14,6 +14,7 @@ namespace DataConverter.UnitTests
             "IDCJAC0009,066062,2021,02,05,3.1,,",
             "IDCJAC0009,066062,2021,02,06,3.1,,",
             "IDCJAC0009,066062,2021,02,07,0,,",
+            "IDCJAC0009,066062,2021,02,23,7.8,,",
             "IDCJAC0009,066062,2021,03,14,1.2,,",
             "IDCJAC0009,066062,2021,03,15,2.2,,",
             "IDCJAC0009,066062,2021,03,16,8.5,,",
@@ -41,10 +42,10 @@ namespace DataConverter.UnitTests
             summary.WeatherData[1].Year.Should().Be(2021);
             summary.WeatherData[1].FirstRecordedDate.Should().Be(new DateTime(2021, 1, 1));
             summary.WeatherData[1].LastRecordedDate.Should().Be(new DateTime(2021, 3, 18));
-            summary.WeatherData[1].TotalRainfall.Should().Be(41.01m);
-            summary.WeatherData[1].AverageDailyRainfall.Should().Be(41.01m / 9);
+            summary.WeatherData[1].TotalRainfall.Should().Be(48.81m);
+            summary.WeatherData[1].AverageDailyRainfall.Should().Be(48.81m / 10);
             summary.WeatherData[1].DaysWithNoRainfall.Should().Be(2);
-            summary.WeatherData[1].DaysWithRainfall.Should().Be(7);
+            summary.WeatherData[1].DaysWithRainfall.Should().Be(8);
             //summary.WeatherData[1].LongestNumberOfDaysRaining.Should().Be(1);
         }
 
@@ -64,6 +65,21 @@ namespace DataConverter.UnitTests
             summary.WeatherData[1].MonthlyAggregates[0].Month.Should().Be(1);
             summary.WeatherData[1].MonthlyAggregates[1].Month.Should().Be(2);
             summary.WeatherData[1].MonthlyAggregates[2].Month.Should().Be(3);
+        }
+
+
+        [Fact]
+        public void AggregateShouldCalculateMonthlyAverageAndMedian()
+        {
+            var aggregator = AggregateAllSampleData();
+            var summary = aggregator.GetSummary();
+
+            summary.WeatherData[1].MonthlyAggregates[0].AverageDailyRainfall.Should().Be(10.45m);
+            summary.WeatherData[1].MonthlyAggregates[0].MedianDailyRainfall.Should().Be(10.45m);
+            summary.WeatherData[1].MonthlyAggregates[1].AverageDailyRainfall.Should().Be(3.5m);
+            summary.WeatherData[1].MonthlyAggregates[1].MedianDailyRainfall.Should().Be(3.1m);
+            summary.WeatherData[1].MonthlyAggregates[2].AverageDailyRainfall.Should().Be(4.872m);
+            summary.WeatherData[1].MonthlyAggregates[2].MedianDailyRainfall.Should().Be(2.2m);
         }
 
         private static WeatherDataAggregator AggregateAllSampleData()
