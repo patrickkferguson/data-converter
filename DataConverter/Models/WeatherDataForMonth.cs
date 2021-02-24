@@ -17,10 +17,16 @@ namespace DataConverter.Models
         [JsonPropertyName("Month")]
         public string MonthName { get; }
         
-        public DateTime? FirstRecordedDate { get; set; }
-        
-        public DateTime? LastRecordedDate { get; set; }
-        
+        [JsonIgnore]
+        public DateTime? FirstDate { get; set; }
+
+        public string FirstRecordedDate => FirstDate.HasValue ? FirstDate.Value.ToString("yyyy-MM-dd") : string.Empty;
+
+        [JsonIgnore]
+        public DateTime? LastDate { get; set; }
+
+        public string LastRecordedDate => LastDate.HasValue ? LastDate.Value.ToString("yyyy-MM-dd") : string.Empty;
+
         public decimal TotalRainfall { get; set; }
         
         public decimal AverageDailyRainfall { get; set; }

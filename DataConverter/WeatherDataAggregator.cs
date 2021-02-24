@@ -63,14 +63,14 @@ namespace DataConverter
         {
             var rainfallReading = new RainfallReading(bomRainfallData.GetDate(), bomRainfallData.GetRainfall());
 
-            if (dataForYear.FirstRecordedDate == null || rainfallReading.Date < dataForYear.FirstRecordedDate)
+            if (dataForYear.FirstDate == null || rainfallReading.Date < dataForYear.FirstDate)
             {
-                dataForYear.FirstRecordedDate = rainfallReading.Date;
+                dataForYear.FirstDate = rainfallReading.Date;
             }
 
-            if (dataForYear.LastRecordedDate == null || rainfallReading.Date > dataForYear.LastRecordedDate)
+            if (dataForYear.LastDate == null || rainfallReading.Date > dataForYear.LastDate)
             {
-                dataForYear.LastRecordedDate = rainfallReading.Date;
+                dataForYear.LastDate = rainfallReading.Date;
             }
 
             if (rainfallReading.Rainfall > 0)
@@ -99,14 +99,14 @@ namespace DataConverter
 
         private static void AggregateMonthData(WeatherDataForMonth dataForMonth, RainfallReading rainfallReading)
         {
-            if (dataForMonth.FirstRecordedDate == null || rainfallReading.Date < dataForMonth.FirstRecordedDate)
+            if (dataForMonth.FirstDate == null || rainfallReading.Date < dataForMonth.FirstDate)
             {
-                dataForMonth.FirstRecordedDate = rainfallReading.Date;
+                dataForMonth.FirstDate = rainfallReading.Date;
             }
 
-            if (dataForMonth.LastRecordedDate == null || rainfallReading.Date > dataForMonth.LastRecordedDate)
+            if (dataForMonth.LastDate == null || rainfallReading.Date > dataForMonth.LastDate)
             {
-                dataForMonth.LastRecordedDate = rainfallReading.Date;
+                dataForMonth.LastDate = rainfallReading.Date;
             }
 
             if (rainfallReading.Rainfall > 0)

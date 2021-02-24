@@ -31,8 +31,8 @@ namespace DataConverter.UnitTests
             summary.WeatherData.Count.Should().Be(2);
             
             summary.WeatherData[0].Year.Should().Be(2020);
-            summary.WeatherData[0].FirstRecordedDate.Should().Be(new DateTime(2020, 10, 1));
-            summary.WeatherData[0].LastRecordedDate.Should().Be(new DateTime(2020, 11, 1));
+            summary.WeatherData[0].FirstDate.Should().Be(new DateTime(2020, 10, 1));
+            summary.WeatherData[0].LastDate.Should().Be(new DateTime(2020, 11, 1));
             summary.WeatherData[0].TotalRainfall.Should().Be(15.7m);
             summary.WeatherData[0].AverageDailyRainfall.Should().Be(15.7m / 2);
             summary.WeatherData[0].DaysWithNoRainfall.Should().Be(0);
@@ -40,8 +40,8 @@ namespace DataConverter.UnitTests
             summary.WeatherData[0].LongestNumberOfDaysRaining.Should().Be(1);
 
             summary.WeatherData[1].Year.Should().Be(2021);
-            summary.WeatherData[1].FirstRecordedDate.Should().Be(new DateTime(2021, 1, 1));
-            summary.WeatherData[1].LastRecordedDate.Should().Be(new DateTime(2021, 3, 18));
+            summary.WeatherData[1].FirstDate.Should().Be(new DateTime(2021, 1, 1));
+            summary.WeatherData[1].LastDate.Should().Be(new DateTime(2021, 3, 18));
             summary.WeatherData[1].TotalRainfall.Should().Be(48.81m);
             summary.WeatherData[1].AverageDailyRainfall.Should().Be(48.81m / 10);
             summary.WeatherData[1].DaysWithNoRainfall.Should().Be(2);
