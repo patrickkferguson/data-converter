@@ -12,16 +12,7 @@ namespace DataConverter
     {
         internal static async Task Main(string[] args)
         {
-            var switchMappings = new Dictionary<string, string>()
-            {
-                { "-i", "input" },
-                { "-o", "output" },
-            };
-
-            var builder = new ConfigurationBuilder();
-            builder.AddCommandLine(args, switchMappings);
-
-            var config = builder.Build();
+            var config = BuildConfiguration(args);
 
             var inputPath = string.IsNullOrEmpty(config["input"])
                 ? "C:\\Temp\\IDCJAC0009_066062_1800_Data.csv"
@@ -35,6 +26,31 @@ namespace DataConverter
                 return;
             }
 
+            var weatherDataSummary = await AggregateData(inputPath);
+
+            var outputPath = GetOutputPath(config, inputPath);
+
+            var jsonString = ConvertToJson(weatherDataSummary);
+
+            await WriteOutput(outputPath, jsonString);
+        }
+
+        private static IConfiguration BuildConfiguration(string[] args)
+        {
+            var switchMappings = new Dictionary<string, string>()
+            {
+                { "-i", "input" },
+                { "-o", "output" },
+            };
+
+            var builder = new ConfigurationBuilder();
+            builder.AddCommandLine(args, switchMappings);
+
+            return builder.Build();
+        }
+
+        private static async Task<WeatherDataSummary> AggregateData(string inputPath)
+        {
             Console.WriteLine($"Reading data from {inputPath}");
 
             await using var fileStream = File.OpenRead(inputPath);
@@ -58,10 +74,11 @@ namespace DataConverter
 
             Console.WriteLine($"Finished reading data - {totalLineCount} total lines; {validLineCount} valid lines");
 
-            var summary = aggregator.GetSummary();
+            return aggregator.GetSummary();
+        }
 
-            var jsonString = JsonSerializer.Serialize(summary);
-
+        private static string GetOutputPath(IConfiguration config, string inputPath)
+        {
             var outputPath = config["output"];
 
             if (string.IsNullOrEmpty(outputPath))
@@ -71,6 +88,16 @@ namespace DataConverter
                     $"{Path.GetFileNameWithoutExtension(inputPath)}.json");
             }
 
+            return outputPath;
+        }
+
+        private static string ConvertToJson(WeatherDataSummary weatherDataSummary)
+        {
+            return JsonSerializer.Serialize(weatherDataSummary);
+        }
+
+        private static async Task WriteOutput(string outputPath, string jsonString)
+        {
             Console.WriteLine($"Writing JSON output to {outputPath}");
 
             await File.WriteAllTextAsync(outputPath, jsonString);
