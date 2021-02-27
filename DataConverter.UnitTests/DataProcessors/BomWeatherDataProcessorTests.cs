@@ -1,11 +1,12 @@
 using System;
+using DataConverter.DataProcessors;
 using DataConverter.Models;
 using FluentAssertions;
 using Xunit;
 
-namespace DataConverter.UnitTests
+namespace DataConverter.UnitTests.DataProcessors
 {
-    public class WeatherDataAggregatorTests
+    public class BomWeatherDataProcessorTests
     {
         private static readonly string[] SampleData = {
             "IDCJAC0009,066062,2020,10,01,7.3,,",
@@ -26,7 +27,7 @@ namespace DataConverter.UnitTests
         public void AggregateShouldAggregateYears()
         {
             var aggregator = AggregateAllSampleData();
-            var summary = aggregator.GetSummary();
+            var summary = (WeatherDataSummary)aggregator.GetSummary();
 
             summary.WeatherData.Count.Should().Be(2);
             
@@ -53,7 +54,7 @@ namespace DataConverter.UnitTests
         public void AggregateShouldAggregateMonths()
         {
             var aggregator = AggregateAllSampleData();
-            var summary = aggregator.GetSummary();
+            var summary = (WeatherDataSummary)aggregator.GetSummary();
 
             summary.WeatherData.Count.Should().Be(2);
 
@@ -66,13 +67,12 @@ namespace DataConverter.UnitTests
             summary.WeatherData[1].MonthlyAggregates[1].MonthNumber.Should().Be(2);
             summary.WeatherData[1].MonthlyAggregates[2].MonthNumber.Should().Be(3);
         }
-
-
+        
         [Fact]
         public void AggregateShouldCalculateMonthlyAverageAndMedian()
         {
             var aggregator = AggregateAllSampleData();
-            var summary = aggregator.GetSummary();
+            var summary = (WeatherDataSummary)aggregator.GetSummary();
 
             summary.WeatherData[1].MonthlyAggregates[0].AverageDailyRainfall.Should().Be(10.45m);
             summary.WeatherData[1].MonthlyAggregates[0].MedianDailyRainfall.Should().Be(10.45m);
@@ -82,17 +82,17 @@ namespace DataConverter.UnitTests
             summary.WeatherData[1].MonthlyAggregates[2].MedianDailyRainfall.Should().Be(2.2m);
         }
 
-        private static WeatherDataAggregator AggregateAllSampleData()
+        private static BomWeatherDataProcessor AggregateAllSampleData()
         {
-            var aggregator = new WeatherDataAggregator();
+            var processor = new BomWeatherDataProcessor();
 
             foreach (var line in SampleData)
             {
                 BomRainfallData.TryParse(line, out var data);
-                aggregator.Aggregate(data);
+                processor.Aggregate(data);
             }
 
-            return aggregator;
+            return processor;
         }
     }
 }

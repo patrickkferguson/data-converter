@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DataConverter": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Temp\\IDCJAC0009_066062_1800_Data.csv\" -of json-pretty"
+    }
+  }
+}

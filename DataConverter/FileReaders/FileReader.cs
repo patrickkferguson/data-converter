@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace DataConverter
+namespace DataConverter.FileReaders
 {
-    public class FileReader
+    public class FileReader : IFileReader
     {
         public async IAsyncEnumerable<string> Read(Stream fileStream, int skipLines)
         {
