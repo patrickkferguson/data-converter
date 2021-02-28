@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
-using DataConverter.Models;
+using DataConverter.Configuration;
+using DataConverter.DataProcessors;
+using DataConverter.Extensions;
+using DataConverter.FileReaders;
+using DataConverter.OutputConverters;
+using DataConverter.OutputWriters;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace DataConverter
 {
@@ -12,95 +17,60 @@ namespace DataConverter
     {
         internal static async Task Main(string[] args)
         {
-            var config = BuildConfiguration(args);
-
-            var inputPath = string.IsNullOrEmpty(config["input"])
-                ? "C:\\Temp\\IDCJAC0009_066062_1800_Data.csv"
-                : config["input"];
-
-            if (!File.Exists(inputPath))
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"No file found at the specified path {inputPath}");
-                Console.ResetColor();
-                return;
-            }
-
-            var weatherDataSummary = await AggregateData(inputPath);
-
-            var outputPath = GetOutputPath(config, inputPath);
-
-            var jsonString = ConvertToJson(weatherDataSummary);
-
-            await WriteOutput(outputPath, jsonString);
-        }
-
-        private static IConfiguration BuildConfiguration(string[] args)
-        {
             var switchMappings = new Dictionary<string, string>()
             {
-                { "-i", "input" },
+                { "-i", "inputPath" },
                 { "-o", "output" },
+                { "-ot", "outputType" },
+                { "-of", "outputFormat" },
             };
 
-            var builder = new ConfigurationBuilder();
-            builder.AddCommandLine(args, switchMappings);
-
-            return builder.Build();
-        }
-
-        private static async Task<WeatherDataSummary> AggregateData(string inputPath)
-        {
-            Console.WriteLine($"Reading data from {inputPath}");
-
-            await using var fileStream = File.OpenRead(inputPath);
-
-            var fileReader = new FileReader();
-            var totalLineCount = 0;
-            var validLineCount = 0;
-
-            var aggregator = new WeatherDataAggregator();
-
-            await foreach (var line in fileReader.Read(fileStream, 1))
-            {
-                if (BomRainfallData.TryParse(line, out var data))
+            var hostBuilder = new HostBuilder()
+                .ConfigureAppConfiguration(configurationBuilder =>
+                    {
+                        configurationBuilder.AddCommandLine(args, switchMappings);
+                    })
+                .ConfigureServices((_, services) =>
                 {
-                    aggregator.Aggregate(data);
-                    validLineCount++;
-                }
+                    services.AddSingleton<IConfigurationService, ConfigurationService>();
+                    services.AddSingleton<IDataConverterService, DataConverterService>();
+                    services.AddSingleton<IFileReader, FileReader>();
+                    AddDataProcessors(services);
+                    AddOutputConverters(services);
+                    AddOutputWriters(services);
+                });
 
-                totalLineCount++;
-            }
-
-            Console.WriteLine($"Finished reading data - {totalLineCount} total lines; {validLineCount} valid lines");
-
-            return aggregator.GetSummary();
-        }
-
-        private static string GetOutputPath(IConfiguration config, string inputPath)
-        {
-            var outputPath = config["output"];
-
-            if (string.IsNullOrEmpty(outputPath))
+            try
             {
-                outputPath = Path.Combine(
-                    Path.GetDirectoryName(inputPath),
-                    $"{Path.GetFileNameWithoutExtension(inputPath)}.json");
+                var host = hostBuilder.Build();
+                var converterService = host.Services.GetRequiredService<IDataConverterService>();
+
+                await converterService.RunAsync();
             }
-
-            return outputPath;
+            catch (Exception exception)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(exception.Message);
+                Console.ResetColor();
+            }
         }
 
-        private static string ConvertToJson(WeatherDataSummary weatherDataSummary)
+        private static void AddDataProcessors(IServiceCollection services)
         {
-            return JsonSerializer.Serialize(weatherDataSummary);
+            services.AddSingleton<IDataProcessorFactory, DataProcessorFactory>();
+            services.AddTransientAllImplementations<IDataProcessor>();
         }
 
-        private static async Task WriteOutput(string outputPath, string jsonString)
+        private static void AddOutputConverters(IServiceCollection services)
         {
-            Console.WriteLine($"Writing JSON output to {outputPath}");
+            services.AddSingleton<IOutputConverterFactory, OutputConverterFactory>();
+            services.AddTransientAllImplementations<IOutputConverter>();
+        }
 
-            await File.WriteAllTextAsync(outputPath, jsonString);
+        private static void AddOutputWriters(IServiceCollection services)
+        {
+            services.AddSingleton<IOutputWriterFactory, OutputWriterFactory>();
+            services.AddTransientAllImplementations<IOutputWriter>();
         }
     }
 }

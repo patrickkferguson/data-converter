@@ -2,15 +2,35 @@
 using System.Linq;
 using DataConverter.Models;
 
-namespace DataConverter
+namespace DataConverter.DataProcessors
 {
-    public class WeatherDataAggregator
+    public class BomWeatherDataProcessor : IDataProcessor
     {
+        private const string SupportedHeaderLine =
+            "product code,bureau of meteorology station number,year,month,day,rainfall amount (millimetres),period over which rainfall was measured (days),quality";
+
         private readonly Dictionary<int, WeatherDataForYear> _weatherDataByYear;
 
-        public WeatherDataAggregator()
+        public BomWeatherDataProcessor()
         {
             _weatherDataByYear = new Dictionary<int, WeatherDataForYear>();
+        }
+
+        public bool CanProcess(string headerLine)
+        {
+            return headerLine != null &&
+                   headerLine.ToLowerInvariant() == SupportedHeaderLine;
+        }
+
+        public bool ProcessLine(string dataLine)
+        {
+            if (BomRainfallData.TryParse(dataLine, out var bomRainfallData))
+            {
+                Aggregate(bomRainfallData);
+                return true;
+            }
+
+            return false;
         }
 
         public void Aggregate(BomRainfallData bomRainfallData)
@@ -35,7 +55,7 @@ namespace DataConverter
             AggregateYearData(dataForYear, bomRainfallData);
         }
 
-        public WeatherDataSummary GetSummary()
+        public object GetSummary()
         {
             var summary = new WeatherDataSummary();
 
@@ -124,7 +144,7 @@ namespace DataConverter
         {
             dataForMonth.AverageDailyRainfall = dataForMonth.TotalRainfall /
                                                 (dataForMonth.DaysWithNoRainfall + dataForMonth.DaysWithRainfall);
-            
+
             dataForMonth.MedianDailyRainfall = GetMedian(allReadingsForYear.Where(r => r.Date.Month == dataForMonth.MonthNumber));
         }
 
@@ -146,7 +166,7 @@ namespace DataConverter
             var currentNumberOfDaysRaining = 1;
             var lastDate = readings[0].Date;
 
-            for (var i = 1; i < sortedData.Count; i ++)
+            for (var i = 1; i < sortedData.Count; i++)
             {
                 if (sortedData[i].Rainfall > 0 && sortedData[i].Date == lastDate.AddDays(1))
                 {
